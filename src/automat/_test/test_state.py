@@ -86,6 +86,6 @@ class StateTests(TestCase):
         """
         switch = switchFactory(Devices(SwitchController()))
         self.assertFalse(switch.is_on())
-        with self.assertRaises(OperationException) as cm:
-            switch.flip()
-            self.assertFalse(switch.is_on())
+        with self.assertRaises(OperationException):
+            switch.flip_with_exception()
+        self.assertFalse(switch.is_on())
