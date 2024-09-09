@@ -48,15 +48,18 @@ def flip_switch_on(controller: SwitchController, devices: Devices):
 def flip_switch_off(controller: SwitchController, devices: Devices):
     devices.switch.toggle()
 
+class OperationException(Exception):
+    pass
+
 @off.upon(SwitchProtocol.flip_with_exception).to(on)
 def flip_switch_on_exception(controller: SwitchController, devices: Devices):
     devices.switch.toggle()
-    raise Exception
+    raise OperationException()
 
 @on.upon(SwitchProtocol.flip_with_exception).to(off)
 def flip_switch_off_exception(controller: SwitchController, devices: Devices):
     devices.switch.toggle()
-    raise Exception
+    raise OperationException()
 
 @on.upon(SwitchProtocol.is_on).loop()
 def report_on(controller: SwitchController, devices: Devices):
@@ -78,7 +81,11 @@ class StateTests(TestCase):
         self.assertTrue(switch.is_on())
 
     def test_exception_flip(self):
+        """
+        When an exception is raised, the internal state of the machine should not change.
+        """
         switch = switchFactory(Devices(SwitchController()))
         self.assertFalse(switch.is_on())
-        switch.flip_with_exception()
-        self.assertFalse(switch.is_on())
+        with self.assertRaises(OperationException) as cm:
+            switch.flip()
+            self.assertFalse(switch.is_on())
